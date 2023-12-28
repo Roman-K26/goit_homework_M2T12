@@ -20,6 +20,7 @@ fastapi-mail = "^1.4.1"
 python-dotenv = "^1.0.0"
 pydantic = "^2.5.3"
 pydantic-settings = "^2.1.0"
+fastapi-limiter = "^0.1.5"
 
 
 [build-system]
