@@ -21,6 +21,18 @@ security = HTTPBearer()
 
 @router.post("/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def signup(body: UserModel, background_tasks: BackgroundTasks, request: Request, db: Session = Depends(get_db)):
+    """
+    Registers a new user and sends a confirmation email.
+
+    Parameters:
+        body (UserModel): The user data.
+        background_tasks (BackgroundTasks): Background tasks to run, including sending the confirmation email.
+        request (Request): The request object.
+        db (Session): The database session.
+
+    Returns:
+        dict: User information and a confirmation message.
+    """
     exist_user = await repository_users.get_user_by_email(body.email, db)
     if exist_user:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Account already exists")
@@ -32,6 +44,16 @@ async def signup(body: UserModel, background_tasks: BackgroundTasks, request: Re
 
 @router.post("/login", response_model=TokenModel)
 async def login(body: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    """
+    Logs in a user and returns JWT tokens.
+
+    Parameters:
+        body (OAuth2PasswordRequestForm): The user login credentials.
+        db (Session): The database session.
+
+    Returns:
+        dict: JWT tokens.
+    """
     user = await repository_users.get_user_by_email(body.username, db)
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email")
@@ -48,6 +70,16 @@ async def login(body: OAuth2PasswordRequestForm = Depends(), db: Session = Depen
 
 @router.get('/refresh_token', response_model=TokenModel)
 async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(security), db: Session = Depends(get_db)):
+    """
+    Refreshes the access token using the refresh token.
+
+    Parameters:
+        credentials (HTTPAuthorizationCredentials): The HTTP authorization credentials containing the refresh token.
+        db (Session): The database session.
+
+    Returns:
+        dict: Refreshed JWT tokens.
+    """
     token = credentials.credentials
     email = await auth_service.decode_refresh_token(token)
     user = await repository_users.get_user_by_email(email, db)
@@ -62,6 +94,16 @@ async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(sec
 
 @router.get('/confirmed_email/{token}')
 async def confirmed_email(token: str, db: Session = Depends(get_db)):
+    """
+    Confirms a user's email address.
+
+    Parameters:
+        token (str): The confirmation token.
+        db (Session): The database session.
+
+    Returns:
+        dict: A confirmation message.
+    """
     email = await auth_service.get_email_from_token(token)
     user = await repository_users.get_user_by_email(email, db)
     if user is None:
@@ -74,6 +116,18 @@ async def confirmed_email(token: str, db: Session = Depends(get_db)):
 @router.post('/request_email')
 async def request_email(body: RequestEmail, background_tasks: BackgroundTasks, request: Request,
                         db: Session = Depends(get_db)):
+    """
+    Sends an email confirmation request.
+
+    Parameters:
+        body (RequestEmail): The email request data.
+        background_tasks (BackgroundTasks): Background tasks to run, including sending the confirmation email.
+        request (Request): The request object.
+        db (Session): The database session.
+
+    Returns:
+        dict: A confirmation message.
+    """
     user = await repository_users.get_user_by_email(body.email, db)
 
     if user.confirmed:
@@ -84,12 +138,32 @@ async def request_email(body: RequestEmail, background_tasks: BackgroundTasks, r
 
 @router.get("/me/", response_model=UserDb)
 async def read_users_me(current_user: User = Depends(auth_service.get_current_user)):
+    """
+    Retrieves the current user.
+
+    Parameters:
+        current_user (User): The current authenticated user.
+
+    Returns:
+        UserDb: The current user's information.
+    """
     return current_user
 
 
 @router.patch('/avatar', response_model=UserDb)
 async def update_avatar_user(file: UploadFile = File(), current_user: User = Depends(auth_service.get_current_user),
                              db: Session = Depends(get_db)):
+    """
+    Updates the avatar of the current user.
+
+    Parameters:
+        file (UploadFile): The uploaded avatar file.
+        current_user (User): The current authenticated user.
+        db (Session): The database session.
+
+    Returns:
+        UserDb: The updated user information.
+    """
     cloudinary.config(
         cloud_name=settings.cloudinary_name,
         api_key=settings.cloudinary_api_key,

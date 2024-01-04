@@ -25,6 +25,11 @@ app.include_router(contacts.router, prefix='/api')
 
 @app.on_event("startup")
 async def startup():
+    """
+        Event handler that runs on application startup.
+
+        Initializes the Redis connection and sets up rate limiting.
+    """
     r = await redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0, encoding="utf-8",
                           decode_responses=True)
     await FastAPILimiter.init(r)
@@ -32,4 +37,10 @@ async def startup():
 
 @app.get("/")
 def read_root():
+    """
+        Returns a simple greeting message.
+
+        :return: A greeting message.
+        :rtype: dict
+    """
     return {"message": "Hello World"}
