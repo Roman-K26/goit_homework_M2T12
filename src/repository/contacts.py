@@ -50,7 +50,7 @@ async def create_contact(body: ContactBase, user: User, db: Session) -> Contact:
     Returns:
         Contact: The newly created contact.
     """
-    contact = Contact(name=body.name, user_id=user.id)
+    contact = Contact(firstname=body.firstname, lastname=body.lastname, email=body.email, phone=body.phone, birthdate=body.birthdate, additional_data=body.additional_data, user_id=user.id)
     db.add(contact)
     db.commit()
     db.refresh(contact)
